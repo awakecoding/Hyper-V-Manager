@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+  <Import Project="..\common.build.pre.props" />
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
+    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Common" />
+    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Management" />
+    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
+    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Wizards" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Microsoft.Virtualization.Client.Settings.Resources.CompositeControlsLayout.xml" />
+    <None Remove="Microsoft.Virtualization.Client.Settings.Resources.SettingLayouts.xml" />
+    <None Remove="Microsoft.Virtualization.Client.Settings.Resources.LayoutXmlSchema.xsd" />
+    <EmbeddedResource Include="Microsoft.Virtualization.Client.Settings.Resources.CompositeControlsLayout.xml" LogicalName="Microsoft.Virtualization.Client.Settings.Resources.CompositeControlsLayout.xml" />
+    <EmbeddedResource Include="Microsoft.Virtualization.Client.Settings.Resources.SettingLayouts.xml" LogicalName="Microsoft.Virtualization.Client.Settings.Resources.SettingLayouts.xml" />
+    <EmbeddedResource Include="Microsoft.Virtualization.Client.Settings.Resources.LayoutXmlSchema.xsd" LogicalName="Microsoft.Virtualization.Client.Settings.Resources.LayoutXmlSchema.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Management\Microsoft.Virtualization.Client.Management.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common\Microsoft.Virtualization.Client.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Wizards\Microsoft.Virtualization.Client.Wizards.csproj" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+</Project>
