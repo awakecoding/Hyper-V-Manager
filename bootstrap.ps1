@@ -23,6 +23,15 @@ $HVAssemblyNames | ForEach-Object {
     Copy-Item "$HVSourcePath\$HVResourceAssembly" "$HVAssemblyPath\$HVResourceAssembly" -Force
 }
 
+$HVResourceAssembly = "$HVAssemblyLang\vmconnect.resources.dll"
+Copy-Item "$Env:WinDir\vmconnect.exe" "$HVAssemblyPath\vmconnect.exe" -Force
+Copy-Item "$Env:WinDir\$HVResourceAssembly" "$HVAssemblyPath\$HVResourceAssembly" -Force
+
+$VirtMgmtRegPath = "HKLM\SOFTWARE\Microsoft\MMC\SnapIns\FX:{922180d7-b74e-45f6-8c74-4b560cc100a5}"
+& reg export $VirtMgmtRegPath "$HVAssemblyPath\virtmgmt.reg" /y /reg:64
+
+Copy-Item "$Env:WinDir\virtmgmt.msc" "$HVAssemblyPath\virtmgmt.msc" -Force
+
 # Decompile assemblies of interest
 
 Remove-Item -Path $HVDecompiledPath -Recurse -Force
