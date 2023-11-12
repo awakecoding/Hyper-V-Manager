@@ -4,13 +4,6 @@
   </PropertyGroup>
   <Import Project="..\common.build.pre.props" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Common" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Management" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Wizards" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="Microsoft.Virtualization.Client.Settings.Resources.CompositeControlsLayout.xml" />
     <None Remove="Microsoft.Virtualization.Client.Settings.Resources.SettingLayouts.xml" />
     <None Remove="Microsoft.Virtualization.Client.Settings.Resources.LayoutXmlSchema.xsd" />
@@ -24,6 +17,8 @@
     <ProjectReference Include="..\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common\Microsoft.Virtualization.Client.Common.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Wizards\Microsoft.Virtualization.Client.Wizards.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />

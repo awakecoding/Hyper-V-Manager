@@ -1,14 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\common.build.pre.props" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Common" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Settings" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Wizards" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
     <PackageReference Include="Microsoft.Management.Infrastructure" Version="3.0.0" />
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" />
   </ItemGroup>

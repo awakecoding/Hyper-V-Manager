@@ -5,13 +5,6 @@
   </PropertyGroup>
   <Import Project="..\common.build.pre.props" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Management" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Settings" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Wizards" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
   </ItemGroup>
   <ItemGroup>

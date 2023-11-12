@@ -4,17 +4,12 @@
   </PropertyGroup>
   <Import Project="..\common.build.pre.props" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Common" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Management" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Settings" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Management\Microsoft.Virtualization.Client.Management.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common\Microsoft.Virtualization.Client.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Management.Infrastructure" Version="3.0.0" />
     <Reference Include="System.Core" />
   </ItemGroup>

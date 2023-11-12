@@ -1,11 +1,3 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\common.build.pre.props" />
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Common" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Management" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Settings" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.VMBrowser" />
-    <InternalsVisibleTo Include="Microsoft.Virtualization.Client.Wizards" />
-  </ItemGroup>
 </Project>

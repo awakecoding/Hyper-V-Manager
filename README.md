@@ -56,6 +56,17 @@ Get-Item *\*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative
 Pop-Location
 ```
 
+Fix resource namespacing:
+
+```powershell
+Get-ChildItem $HVDecompiledPath "Microsoft.Virtualization.Client*.resx" -Recurse -File | ForEach-Object {
+  $AssemblyName = $_.Directory.BaseName
+  $NewBaseName = $_.BaseName -Replace "${AssemblyName}.", ""
+  $Destination = Join-Path $_.Directory "${NewBaseName}.resx"
+  Move-Item $_ $Destination
+}
+```
+
 In Decompiled\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client\CommonUtilities.cs, add `using System.Collections.ObjectModel;
 ` at the beginning then replace the RunPowershellScript function definition with this one:
 
