@@ -15,8 +15,8 @@ $HVAssemblyNames = @(
 
 # Copy assemblies of interest
 
-New-Item -Path $HVAssemblyPath -ItemType Directory -Force
-New-Item -Path "$HVAssemblyPath\$HVAssemblyLang" -ItemType Directory -Force
+New-Item -Path $HVAssemblyPath -ItemType Directory -Force | Out-Null
+New-Item -Path "$HVAssemblyPath\$HVAssemblyLang" -ItemType Directory -Force | Out-Null
 $HVAssemblyNames | ForEach-Object {
     $HVResourceAssembly = "$HVAssemblyLang\$_.resources.dll"
     Copy-Item "$HVSourcePath\$_.dll" "$HVAssemblyPath\$_.dll" -Force
@@ -24,20 +24,25 @@ $HVAssemblyNames | ForEach-Object {
 }
 
 $HVResourceAssembly = "$HVAssemblyLang\vmconnect.resources.dll"
-Copy-Item "$Env:WinDir\vmconnect.exe" "$HVAssemblyPath\vmconnect.exe" -Force
-Copy-Item "$Env:WinDir\$HVResourceAssembly" "$HVAssemblyPath\$HVResourceAssembly" -Force
+Copy-Item "$Env:WinDir\System32\vmconnect.exe" "$HVAssemblyPath\vmconnect.exe" -Force
+Copy-Item "$Env:WinDir\System32\$HVResourceAssembly" "$HVAssemblyPath\$HVResourceAssembly" -Force
 
 $VirtMgmtRegPath = "HKLM\SOFTWARE\Microsoft\MMC\SnapIns\FX:{922180d7-b74e-45f6-8c74-4b560cc100a5}"
 & reg export $VirtMgmtRegPath "$HVAssemblyPath\virtmgmt.reg" /y /reg:64
 
-Copy-Item "$Env:WinDir\virtmgmt.msc" "$HVAssemblyPath\virtmgmt.msc" -Force
+Copy-Item "$Env:WinDir\System32\virtmgmt.msc" "$HVAssemblyPath\virtmgmt.msc" -Force
 
 # Decompile assemblies of interest
-
 Remove-Item -Path $HVDecompiledPath -Recurse -Force
-New-Item -Path $HVDecompiledPath -ItemType Directory -Force
+New-Item -Path $HVDecompiledPath -ItemType Directory -Force | Out-Null
 $ILSpyCmdArgs = @('-lv', 'CSharp10_0')
-Get-ChildItem $HVAssemblyPath "*.dll" | ForEach-Object {
+Get-ChildItem $HVAssemblyPath "Microsoft.Virtualization.Client*.dll" | ForEach-Object {
+    $HVAssemblyName = $_.BaseName
+    $HVResourceAssembly = "$HVAssemblyLang\$HVAssemblyName.resources.dll"
+    ilspycmd -p -o "$HVDecompiledPath\$HVAssemblyName" @ILSpyCmdArgs $_
+    ilspycmd -p -o "$HVDecompiledPath\$HVAssemblyName\$HVAssemblyLang" @ILSpyCmdArgs "$HVAssemblyPath\$HVResourceAssembly"
+}
+Get-ChildItem $HVAssemblyPath "vmconnect.exe" | ForEach-Object {
     $HVAssemblyName = $_.BaseName
     $HVResourceAssembly = "$HVAssemblyLang\$HVAssemblyName.resources.dll"
     ilspycmd -p -o "$HVDecompiledPath\$HVAssemblyName" @ILSpyCmdArgs $_
@@ -56,8 +61,7 @@ Get-ChildItem $HVDecompiledPath "Microsoft.Virtualization.Client*.resx" -Recurse
 }
 
 # Remove invalid accessors
-
-$csFiles = Get-ChildItem -Path $HVDecompiledPath -Filter *.cs -Recurse
+$csFiles = Get-ChildItem -Path $HVDecompiledPath -Filter "*.cs" -Include @("*Wizard*","*Dialog*","*Form*") -Recurse
 
 foreach ($file in $csFiles) {
     $lines = Get-Content $file.FullName
@@ -109,5 +113,5 @@ Get-ChildItem .\Overlay -Recurse -File | ForEach-Object {
 Push-Location
 Set-Location $HVDecompiledPath
 dotnet new sln -n Microsoft.Virtualization.Client
-Get-Item *\*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
+Get-Item *\Microsoft.Virtualization.Client*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
 Pop-Location

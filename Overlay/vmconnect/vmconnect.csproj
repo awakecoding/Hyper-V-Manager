@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>vmconnect</AssemblyName>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+  <Import Project="..\common.build.pre.props" />
+  <PropertyGroup>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="noconnectiondialog.baml" />
+    <EmbeddedResource Include="noconnectiondialog.baml" LogicalName="noconnectiondialog.baml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common\Microsoft.Virtualization.Client.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Management\Microsoft.Virtualization.Client.Management.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client.csproj" />
+    <ProjectReference Include="..\Microsoft.Virtualization.Client.Settings\Microsoft.Virtualization.Client.Settings.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Devolutions.MsRdpEx" Version="2023.9.28" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="WindowsFormsIntegration" HintPath="C:\WINDOWS\Microsoft.NET\assembly\GAC_MSIL\WindowsFormsIntegration\v4.0_4.0.0.0__31bf3856ad364e35\WindowsFormsIntegration.dll" />
+    <Reference Include="PresentationFramework" HintPath="C:\WINDOWS\Microsoft.NET\assembly\GAC_MSIL\PresentationFramework\v4.0_4.0.0.0__31bf3856ad364e35\PresentationFramework.dll" />
+    <Reference Include="WindowBase" HintPath="C:\WINDOWS\Microsoft.NET\assembly\GAC_MSIL\WindowsBase\v4.0_4.0.0.0__31bf3856ad364e35\WindowsBase.dll" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="Microsoft.Management.Infrastructure" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+</Project>
