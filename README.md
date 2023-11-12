@@ -6,6 +6,8 @@ Install the [ILSpy](https://github.com/icsharpcode/ILSpy) command-line tool:
 dotnet tool install ilspycmd -g
 ```
 
+Copy assemblies of interest:
+
 ```powershell
 $HVSourcePath = "$Env:ProgramFiles\Hyper-V"
 $HVAssemblyPath = "Assemblies"
@@ -28,6 +30,8 @@ $HVAssemblyNames | ForEach-Object {
 }
 ```
 
+Decompile assemblies of interest:
+
 ```powershell
 $HVAssemblyPath = "Assemblies"
 $HVDecompiledPath = "Decompiled"
@@ -43,19 +47,6 @@ Get-ChildItem $HVAssemblyPath "*.dll" | ForEach-Object {
 Get-ChildItem $HVDecompiledPath AssemblyInfo.cs -Recurse | Remove-Item -Force
 ```
 
-```powershell
-$HVOverlayPath = "Overlay"
-Get-ChildItem .\Overlay -Recurse -File | ForEach-Object {
-    $Destination = $_.FullName.Replace($HVOverlayPath, $HVDecompiledPath)
-    Copy-Item -Path $_.FullName -Destination $Destination -Force
-}
-Push-Location
-Set-Location $HVDecompiledPath
-dotnet new sln -n Microsoft.Virtualization.Client
-Get-Item *\*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
-Pop-Location
-```
-
 Fix resource namespacing:
 
 ```powershell
@@ -67,24 +58,19 @@ Get-ChildItem $HVDecompiledPath "Microsoft.Virtualization.Client*.resx" -Recurse
 }
 ```
 
-In Decompiled\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client\CommonUtilities.cs, add `using System.Collections.ObjectModel;
-` at the beginning then replace the RunPowershellScript function definition with this one:
+Apply overlay project files:
 
-```csharp
-public static ICollection<PSObject> RunPowershellScript(string script)
-{
-    using (Runspace runspace = RunspaceFactory.CreateRunspace())
-    {
-        runspace.Open();
-        using (System.Management.Automation.PowerShell powerShell = System.Management.Automation.PowerShell.Create())
-        {
-            powerShell.Runspace = runspace;
-            powerShell.AddScript(script);
-            Collection<PSObject> results = powerShell.Invoke();
-            return results;
-        }
-    }
+```powershell
+$HVOverlayPath = "Overlay"
+Get-ChildItem .\Overlay -Recurse -File | ForEach-Object {
+    $Destination = $_.FullName.Replace($HVOverlayPath, $HVDecompiledPath)
+    Copy-Item -Path $_.FullName -Destination $Destination -Force
 }
+Push-Location
+Set-Location $HVDecompiledPath
+dotnet new sln -n Microsoft.Virtualization.Client
+Get-Item *\*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
+Pop-Location
 ```
 
 Remove default accessors defined as special functions:
@@ -113,6 +99,26 @@ foreach ($file in $csFiles) {
     }
 
     Set-Content -Path $file.FullName -Value $newContents
+}
+```
+
+In Decompiled\Microsoft.Virtualization.Client\Microsoft.Virtualization.Client\CommonUtilities.cs, add `using System.Collections.ObjectModel;
+` at the beginning then replace the RunPowershellScript function definition with this one:
+
+```csharp
+public static ICollection<PSObject> RunPowershellScript(string script)
+{
+    using (Runspace runspace = RunspaceFactory.CreateRunspace())
+    {
+        runspace.Open();
+        using (System.Management.Automation.PowerShell powerShell = System.Management.Automation.PowerShell.Create())
+        {
+            powerShell.Runspace = runspace;
+            powerShell.AddScript(script);
+            System.Collections.ObjectModel.Collection<PSObject> results = powerShell.Invoke();
+            return results;
+        }
+    }
 }
 ```
 
