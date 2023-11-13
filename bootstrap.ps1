@@ -14,7 +14,6 @@ $HVAssemblyNames = @(
     'Microsoft.Virtualization.Client.Wizards')
 
 # Copy assemblies of interest
-
 New-Item -Path $HVAssemblyPath -ItemType Directory -Force | Out-Null
 New-Item -Path "$HVAssemblyPath\$HVAssemblyLang" -ItemType Directory -Force | Out-Null
 $HVAssemblyNames | ForEach-Object {
@@ -44,7 +43,7 @@ Get-ChildItem $HVAssemblyPath "Microsoft.Virtualization.Client*.dll" | ForEach-O
 }
 Get-ChildItem $HVAssemblyPath "vmconnect.exe" | ForEach-Object {
     $HVAssemblyName = $_.BaseName
-    $HVResourceAssembly = "$HVAssemblyLang\$HVAssemblyName.resources.dll"
+    $HVResourceAssembly = "$HVAssemblyLang\vmconnect.resources.dll"
     ilspycmd -p -o "$HVDecompiledPath\$HVAssemblyName" @ILSpyCmdArgs $_
     ilspycmd -p -o "$HVDecompiledPath\$HVAssemblyName\$HVAssemblyLang" @ILSpyCmdArgs "$HVAssemblyPath\$HVResourceAssembly"
 }
@@ -60,7 +59,33 @@ Get-ChildItem $HVDecompiledPath "Microsoft.Virtualization.Client*.resx" -Recurse
     Move-Item $_ $Destination
 }
 
-# Remove invalid accessors
+# Apply overlay project files
+$ExcludeFilter = @("*.cache","*.config","*.editorconfig","*AssemblyInfo.cs")
+Get-ChildItem $HVOverlayPath -Recurse -File -Exclude $ExcludeFilter | ForEach-Object {
+    $Destination = $_.FullName.Replace($HVOverlayPath, $HVDecompiledPath)
+    Copy-Item -Path $_.FullName -Destination $Destination -Force
+}
+
+# Create solution file
+Push-Location
+Set-Location $HVDecompiledPath
+dotnet new sln -n Microsoft.Virtualization.Client
+Get-Item *\*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
+Pop-Location
+
+# Make sure there is no junk in the directory
+Get-ChildItem "bin" -Recurse -Directory | Remove-Item -Recurse -Force
+Get-ChildItem "obj" -Recurse -Directory | Remove-Item -Recurse -Force
+
+# start tracking post-decompilation modifications
+git init $HVDecompiledPath
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: initial decompilation"
+
+$Message = "Fix invalid generated accessors with special names"
+Write-Host $Message
+
 $csFiles = Get-ChildItem -Path $HVDecompiledPath -Filter "*.cs" -Include @("*Wizard*","*Dialog*","*Form*") -Recurse
 
 foreach ($file in $csFiles) {
@@ -86,7 +111,12 @@ foreach ($file in $csFiles) {
     Set-Content -Path $file.FullName -Value $newContents
 }
 
-# Patch RunPowershellScript in CommonUtilities.cs
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Fix RunPowershellScript runspace.CreatePipeline call"
+Write-Host $Message
+
 $projectName = "Microsoft.Virtualization.Client"
 $filePath = Join-Path $HVDecompiledPath "$ProjectName\$ProjectName\CommonUtilities.cs"
 $fileContent = Get-Content $filePath -Raw
@@ -100,18 +130,44 @@ $replacement = @"
             return powerShell.Invoke();
 "@
 
-$newContent = $fileContent -replace $pattern, $replacement
+$newContent = $fileContent -Replace $pattern, $replacement
 Set-Content -Path $filePath -Value $newContent
 
-# Apply overlay project files
-Get-ChildItem .\Overlay -Recurse -File | ForEach-Object {
-    $Destination = $_.FullName.Replace($HVOverlayPath, $HVDecompiledPath)
-    Copy-Item -Path $_.FullName -Destination $Destination -Force
-}
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
 
-# Create solution file
-Push-Location
-Set-Location $HVDecompiledPath
-dotnet new sln -n Microsoft.Virtualization.Client
-Get-Item *\Microsoft.Virtualization.Client*.csproj | ForEach-Object { dotnet sln add (Resolve-Path $_ -Relative) }
-Pop-Location
+$Message = "Fix RDP ActiveX interop namespace"
+Write-Host $Message
+
+$Pattern = "Microsoft.Virtualization.Client.Interop"
+$Replacement = "MSTSCLib"
+rg $Pattern $HVDecompiledPath -l -t cs | % { $_ -Split "\r?\n" | % {
+    $NewContent = rg $Pattern $_ -r $Replacement -N --passthru
+    Set-Content -Path $_ -Value $NewContent
+} }
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Fix System.Windows.Forms DpiChanged conflict"
+Write-Host $Message
+
+$Pattern = "DpiChanged"
+$Replacement = "MyDpiChanged"
+rg $Pattern $HVDecompiledPath -l -t cs | % { $_ -Split "\r?\n" | % {
+    if (-Not $_.EndsWith("NoConnectionDialog.cs")) {
+        Write-Host $_
+        $NewContent = rg $Pattern $_ -r $Replacement -N --passthru
+        Set-Content -Path $_ -Value $NewContent
+    }
+} }
+$Pattern = "IDpiForm"
+$Replacement = "IMyDpiForm"
+rg $Pattern $HVDecompiledPath -l -t cs | % { $_ -Split "\r?\n" | % {
+    Write-Host $_
+    $NewContent = rg $Pattern $_ -r $Replacement -N --passthru
+    Set-Content -Path $_ -Value $NewContent
+} }
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
