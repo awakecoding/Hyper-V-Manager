@@ -8,9 +8,8 @@
     <GenerateSatelliteAssemblies>True</GenerateSatelliteAssemblies>
     <GenerateResourceUsePreserializedResources>False</GenerateResourceUsePreserializedResources>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <OutputPath>$(OutDir)</OutputPath>
     <IntDir>$(SolutionDir)obj\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <IntermediateOutputPath>$(IntDir)</IntermediateOutputPath>
+    <UICulture>en-US</UICulture>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Virtualization.Client" />

@@ -58,6 +58,14 @@ Get-ChildItem $HVDecompiledPath "Microsoft.Virtualization.Client*.resx" -Recurse
     $Destination = Join-Path $_.Directory "${NewBaseName}.resx"
     Move-Item $_ $Destination
 }
+Get-ChildItem $HVDecompiledPath *.en.resx -Recurse | ForEach-Object { Move-Item $_ $_.Directory.Parent }
+
+# Fix missing empty Microsoft.Virtualization.Client.InteractiveSessionForm.resx file
+$InteractiveSessionPrefix = "Microsoft.Virtualization.Client.InteractiveSession"
+$InputResxFile = Join-Path $HVDecompiledPath "vmconnect" "${InteractiveSessionPrefix}.ConnectionDialog.resx"
+$OutputResxFile = Join-Path $HVDecompiledPath "vmconnect" "${InteractiveSessionPrefix}.InteractiveSessionForm.resx"
+$NewContent = rg "<data name=.*</data>" $InputResxFile -r "" -N --passthru
+Set-Content -Path $OutputResxFile -Value $NewContent -Force
 
 # Apply overlay project files
 $ExcludeFilter = @("*.cache","*.config","*.editorconfig","*AssemblyInfo.cs")
