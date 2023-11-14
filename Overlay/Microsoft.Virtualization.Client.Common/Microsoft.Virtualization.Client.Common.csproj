@@ -8,7 +8,9 @@
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ManagementConsole" HintPath="C:\WINDOWS\assembly\GAC_MSIL\Microsoft.ManagementConsole\3.0.0.0__31bf3856ad364e35\Microsoft.ManagementConsole.dll" />
+    <Reference Include="Microsoft.ManagementConsole" HintPath="$(MicrosoftManagementConsoleDllPath)" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
   </ItemGroup>
