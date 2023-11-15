@@ -11,10 +11,6 @@
     <RootNamespace />
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="noconnectiondialog.baml" />
-    <EmbeddedResource Include="noconnectiondialog.baml" LogicalName="noconnectiondialog.baml" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common\Microsoft.Virtualization.Client.Common.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Common.Types\Microsoft.Virtualization.Client.Common.Types.csproj" />
     <ProjectReference Include="..\Microsoft.Virtualization.Client.Management\Microsoft.Virtualization.Client.Management.csproj" />

@@ -179,3 +179,172 @@ rg $Pattern $HVDecompiledPath -l -t cs | % { $_ -Split "\r?\n" | % {
 
 git -C $HVDecompiledPath add -A
 git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Fix noconnectiondialog.xaml resource embedding"
+
+$NoConnectionDialogBaml = Join-Path $HVDecompiledPath "vmconnect\noconnectiondialog.baml"
+Remove-Item $NoConnectionDialogBaml -ErrorAction SilentlyContinue | Out-Null
+
+$InteractiveSessionPrefix = "Microsoft.Virtualization.Client.InteractiveSession"
+$NoConnectionDialog = Join-Path $HVDecompiledPath "vmconnect\${InteractiveSessionPrefix}\NoConnectionDialog.cs"
+
+$Pattern = "if\s\(!_contentLoaded\)\s+\{([^}]+)\}"
+$Replacement = @"
+    if (!_contentLoaded)
+    {
+        _contentLoaded = true;
+        this.Width = 300;
+        this.Height = 200;
+        Grid grid = new Grid();
+        grid.Background = new SolidColorBrush(Color.FromRgb(0x27, 0x27, 0x27));
+        StackPanel stackPanel = new StackPanel();
+        stackPanel.Width = Double.NaN; // Auto width
+        stackPanel.VerticalAlignment = VerticalAlignment.Center;
+        txtOne = new TextBlock();
+        txtOne.HorizontalAlignment = HorizontalAlignment.Center;
+        txtOne.Foreground = new SolidColorBrush(Colors.White);
+        txtOne.TextWrapping = TextWrapping.Wrap;
+        txtOne.FontSize = 14;
+        txtOne.Text = "";
+        txtTwo = new TextBlock();
+        txtTwo.HorizontalAlignment = HorizontalAlignment.Center;
+        txtTwo.Foreground = new SolidColorBrush(Colors.White);
+        txtTwo.TextWrapping = TextWrapping.Wrap;
+        txtTwo.Margin = new Thickness(0, 20, 0, 30);
+        txtTwo.Text = "";
+        btnTurnOn = new Button();
+        btnTurnOn.HorizontalAlignment = HorizontalAlignment.Center;
+        btnTurnOn.Foreground = new SolidColorBrush(Colors.White);
+        btnTurnOn.Padding = new Thickness(15, 5, 15, 5);
+        btnTurnOn.Background = new SolidColorBrush(Color.FromRgb(0x4C, 0x4B, 0x4B));
+        btnTurnOn.BorderBrush = new SolidColorBrush(Color.FromRgb(0x3B, 0x3B, 0x3B));
+        btnTurnOn.Content = "";
+        btnResume = new Button();
+        btnResume.HorizontalAlignment = HorizontalAlignment.Center;
+        btnResume.Foreground = new SolidColorBrush(Colors.White);
+        btnResume.Padding = new Thickness(15, 5, 15, 5);
+        btnResume.Background = new SolidColorBrush(Color.FromRgb(0x4C, 0x4B, 0x4B));
+        btnResume.BorderBrush = new SolidColorBrush(Color.FromRgb(0x3B, 0x3B, 0x3B));
+        btnResume.Content = "";
+        stackPanel.Children.Add(txtOne);
+        stackPanel.Children.Add(txtTwo);
+        stackPanel.Children.Add(btnTurnOn);
+        stackPanel.Children.Add(btnResume);
+        grid.Children.Add(stackPanel);
+        this.Content = grid;
+    }
+"@
+
+$FileContent = Get-Content $NoConnectionDialog -Raw
+$NewContent = $FileContent -Replace $Pattern, $Replacement
+Set-Content -Path $NoConnectionDialog -Value $NewContent
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Fix AssemblyLoader.cs to load files in custom paths"
+
+$ClientCommonPrefix = "Microsoft.Virtualization.Client.Common"
+$AssemblyLoaderFile = Join-Path $HVDecompiledPath "${ClientCommonPrefix}\${ClientCommonPrefix}\AssemblyLoader.cs"
+
+$AssemblyLoaderData = @"
+using System;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using Microsoft.Win32;
+
+namespace Microsoft.Virtualization.Client.Common;
+
+internal class AssemblyLoader
+{
+	private const string gm_AssemblyNamePrefix = "Microsoft.Virtualization.Client";
+
+	private static string gm_ApplicationBase;
+
+	internal static string ApplicationBase
+	{
+		get
+		{
+			if (string.IsNullOrEmpty(gm_ApplicationBase))
+			{
+				try
+				{
+					using RegistryKey registryKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\MMC\\SnapIns\\FX:{2c61a4aa-809e-11ee-b962-0242ac120002}");
+					if (registryKey != null)
+					{
+						gm_ApplicationBase = (string)registryKey.GetValue("ApplicationBase");
+					}
+				}
+				catch (Exception)
+				{
+					gm_ApplicationBase = string.Empty;
+				}
+			}
+			return gm_ApplicationBase;
+		}
+	}
+
+	static AssemblyLoader()
+	{
+
+	}
+
+	internal static Assembly Load(HyperVAssemblyVersion assemblyVersion, HyperVComponent component)
+	{
+		return Assembly.Load(ConstructAssemblyName(assemblyVersion, component));
+	}
+
+	internal static string GetVmConnectFilePath(HyperVAssemblyVersion assemblyVersion)
+	{
+		string assemblyDirectory = GetAssemblyDirectory(HyperVComponent.VmConnect, assemblyVersion);
+		string path = GetAssemblyFileName(HyperVComponent.VmConnect, assemblyVersion) + ".exe";
+		return Path.Combine(assemblyDirectory, path);
+	}
+
+	internal static string GetInspectVhdDialogFilePath(HyperVAssemblyVersion assemblyVersion)
+	{
+		string assemblyDirectory = GetAssemblyDirectory(HyperVComponent.InspectVhdDialog, assemblyVersion);
+		string path = GetAssemblyFileName(HyperVComponent.InspectVhdDialog, assemblyVersion) + ".exe";
+		return Path.Combine(assemblyDirectory, path);
+	}
+
+	internal static string GetAssemblyDirectory(HyperVComponent component, HyperVAssemblyVersion assemblyVersion)
+	{
+		return ApplicationBase;
+	}
+
+	internal static string GetAssemblyFileName(HyperVComponent component, HyperVAssemblyVersion assemblyVersion)
+	{
+		return component.ToString();
+	}
+
+	private static AssemblyName ConstructAssemblyName(HyperVAssemblyVersion assemblyVersion, HyperVComponent component)
+	{
+		AssemblyName name = Assembly.GetExecutingAssembly().GetName();
+		AssemblyName assemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "{0}.{1}", gm_AssemblyNamePrefix, component.ToString()));
+		assemblyName.Version = name.Version;
+		assemblyName.SetPublicKeyToken(name.GetPublicKeyToken());
+		assemblyName.CultureInfo = name.CultureInfo;
+		return assemblyName;
+	}
+}
+"@
+
+Set-Content -Path $AssemblyLoaderFile -Value $AssemblyLoaderData -Force
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Change 'Before You Begin' by 'A New Beginning' in string resources"
+Write-Host $Message
+
+$Pattern = "Before You Begin"
+$Replacement = "A New Beginning"
+rg $Pattern $HVDecompiledPath -l -t cs | % { $_ -Split "\r?\n" | % {
+    $NewContent = rg $Pattern $_ -r $Replacement -N --passthru
+    Set-Content -Path $_ -Value $NewContent
+} }
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
