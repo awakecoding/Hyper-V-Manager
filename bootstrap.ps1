@@ -336,6 +336,37 @@ Set-Content -Path $AssemblyLoaderFile -Value $AssemblyLoaderData -Force
 git -C $HVDecompiledPath add -A
 git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
 
+$Message = "Fix CompliantTextBox.cs base.OnKeyUp(e)"
+
+$CompliantTextBoxCs = Join-Path $HVDecompiledPath "Microsoft.Virtualization.Client\Microsoft.Virtualization.Client.Controls\CompliantTextBox.cs"
+
+$Pattern = "\(\(Control\)this\)\.OnKeyUp\(e\);"
+$Replacement = "base.OnKeyUp(e);"
+
+$FileContent = Get-Content $CompliantTextBoxCs -Raw
+$NewContent = $FileContent -Replace $Pattern, $Replacement
+Set-Content -Path $CompliantTextBoxCs -Value $NewContent
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
+$Message = "Fix ConfirmationPage.cs ambiguous Resources"
+
+$ConfirmationPageCs = Join-Path $HVDecompiledPath "Microsoft.Virtualization.Client.Wizards\Microsoft.Virtualization.Client.Wizards.Framework\ConfirmationPage.cs"
+
+$Pattern = "using Microsoft.Virtualization.Client.Wizards.Framework.Properties;"
+$Replacement = @"
+using Microsoft.Virtualization.Client.Wizards.Framework.Properties;
+using Resources = Microsoft.Virtualization.Client.Wizards.Framework.Properties.Resources;
+"@
+
+$FileContent = Get-Content $ConfirmationPageCs -Raw
+$NewContent = $FileContent -Replace $Pattern, $Replacement
+Set-Content -Path $ConfirmationPageCs -Value $NewContent
+
+git -C $HVDecompiledPath add -A
+git --git-dir="$HVDecompiledPath/.git" commit -m "hvmanager: $Message"
+
 $Message = "Change 'Before You Begin' by 'A New Beginning' in string resources"
 Write-Host $Message
 
